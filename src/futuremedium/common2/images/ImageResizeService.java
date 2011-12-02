@@ -7,6 +7,7 @@ import java.awt.image.BufferedImage;
 
 import javax.imageio.*;
 import javax.imageio.stream.FileImageOutputStream;
+import javax.imageio.stream.MemoryCacheImageOutputStream;
 
 /**
  * Perform resize operation based on provided ImageResizeRequest parameters.
@@ -40,15 +41,15 @@ public class ImageResizeService {
 		boolean cropImage = false;
 		if (targetHeight == sourceHeight && targetWidth == sourceWidth) {
 			resizeImage = false; // Explicitly mop up the case where provided
-									// image is already the right size and needs
-									// neither crop nor resize
+			// image is already the right size and needs
+			// neither crop nor resize
 		} else if (request.getResizeAction() == ImageResizeAction.ALWAYS) {
 			if (!request.isCropToAspect()) {
 				if (targetHeight != sourceHeight || targetWidth != sourceWidth) {
 					resizeImage = true;
 				}
 			} else { // Check if source different in both dimensions - if not,
-						// we can crop rather than resize
+				// we can crop rather than resize
 				if (targetHeight != sourceHeight && targetWidth != sourceWidth) {
 					resizeImage = true;
 				}
@@ -62,7 +63,7 @@ public class ImageResizeService {
 					resizeImage = true;
 				}
 			} else { // Check if source smaller than both dimensions - if not,
-						// we can crop rather than resize
+				// we can crop rather than resize
 				if (targetHeight > sourceHeight && targetWidth > sourceWidth) {
 					resizeImage = true;
 				}
@@ -76,7 +77,7 @@ public class ImageResizeService {
 					resizeImage = true;
 				}
 			} else { // Check if source larger than both dimensions - if not, we
-						// can crop rather than resize
+				// can crop rather than resize
 				if (targetHeight < sourceHeight && targetWidth < sourceWidth) {
 					resizeImage = true;
 				}
@@ -124,7 +125,7 @@ public class ImageResizeService {
 						result = result.getSubimage(0, yOffset, sourceWidth,
 								targetHeight);
 					} else if (sourceWidth > targetWidth) { // Chop the extra
-															// width
+						// width
 						int xOffset = (int) Math
 								.rint((sourceWidth - targetWidth) / 2);
 						result = result.getSubimage(xOffset, 0, targetWidth,
@@ -159,6 +160,11 @@ public class ImageResizeService {
 
 		if (result != null && request.getDestinationFilePath() != null) {
 			this.writeJPEG(result, request);
+		}
+
+		if (result != null
+				&& request.getDestinationByteArrayOutputStream() != null) {
+			this.writeJPEGByteStream(result, request);
 		}
 
 		return result;
@@ -217,6 +223,32 @@ public class ImageResizeService {
 
 			output.close();
 		}
+	}
+
+	/**
+	 * @author ahmet alp balkan
+	 */
+	private void writeJPEGByteStream(BufferedImage input,
+			ImageResizeRequest imageResizeRequest) throws IOException {
+		Iterator<ImageWriter> iter = ImageIO.getImageWritersByFormatName("JPG");
+		if (iter.hasNext()) {
+			ImageWriter writer = (ImageWriter) iter.next();
+			ImageWriteParam iwp = writer.getDefaultWriteParam();
+			iwp.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
+			iwp.setCompressionQuality(imageResizeRequest
+					.getCompressionQuality());
+
+			ByteArrayOutputStream output = imageResizeRequest
+					.getDestinationByteArrayOutputStream();
+			MemoryCacheImageOutputStream imgOutput = new MemoryCacheImageOutputStream(
+					output);
+
+			writer.setOutput(imgOutput);
+			IIOImage image = new IIOImage(input, null, null);
+			writer.write(null, image, iwp);
+
+			imgOutput.close();
+		} 
 	}
 
 	/**
