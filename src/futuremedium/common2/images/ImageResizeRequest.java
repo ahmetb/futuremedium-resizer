@@ -1,10 +1,9 @@
 package futuremedium.common2.images;
 
+import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.awt.image.BufferedImage;
-
-import javax.imageio.stream.IIOByteBuffer;
+import java.io.FileInputStream;
 
 /**
  * Set of parameters to control the resizing of an image.
@@ -26,6 +25,7 @@ public class ImageResizeRequest {
 
 	private String sourceFilePath;
 	private File sourceFile;
+	private FileInputStream sourceFileStream;
 	private BufferedImage sourceImage;
 
 	private String destinationFilePath;
@@ -34,6 +34,7 @@ public class ImageResizeRequest {
 
 	private boolean resized;
 	private boolean cropped;
+	
 
 	/**
 	 * Empty, no-arg constructor.
@@ -159,6 +160,15 @@ public class ImageResizeRequest {
 	 */
 	public void setSourceFilePath(String sourceFilePath) {
 		this.sourceFilePath = sourceFilePath;
+	}
+	
+
+	public void setSourceFileStream(FileInputStream sourceStream) {
+		this.sourceFileStream = sourceStream;
+	}
+
+	public FileInputStream getSourceFileStream(){
+		return this.sourceFileStream;
 	}
 
 	/**
@@ -288,6 +298,5 @@ public class ImageResizeRequest {
 	void setCropped(boolean cropped) {
 		this.cropped = cropped;
 	}
-
 
 }

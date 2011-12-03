@@ -26,15 +26,20 @@ public class ImageResizeService {
 	public BufferedImage resize(ImageResizeRequest request) throws Exception {
 		BufferedImage result = null;
 		BufferedImage source = this.getSource(request);
+		
+		if (source == null){
+			throw new ImageResizeException("Source file is not applicable.");
+		}
+		
 		int sourceWidth = source.getWidth();
 		int sourceHeight = source.getHeight();
 		int targetWidth = request.getTargetWidth();
 		int targetHeight = request.getTargetHeight();
 
 		if (request.getTargetWidth() == null) {
-			throw new Exception("No value set for image targetWidth");
+			throw new ImageResizeException("No value set for image targetWidth");
 		} else if (request.getTargetHeight() == null) {
-			throw new Exception("No value set for image targetHeight");
+			throw new ImageResizeException("No value set for image targetHeight");
 		}
 
 		boolean resizeImage = false;
@@ -254,30 +259,39 @@ public class ImageResizeService {
 	/**
 	 * Return BufferedImage based on source information provided in the request.
 	 */
-	private BufferedImage getSource(ImageResizeRequest request)
-			throws Exception {
-		if (request.getSourceImage() != null) {
-			return request.getSourceImage();
-		}
-
-		File sourceFile = null;
-		if (request.getSourceFile() != null
-				&& request.getSourceFile().canRead()) {
-			sourceFile = request.getSourceFile();
-		} else if (request.getSourceFilePath() != null) {
-			sourceFile = new File(request.getSourceFilePath());
-			if (!sourceFile.canRead()) {
-				throw new Exception(
-						"Cannot read source image file from provided path.");
+	private BufferedImage getSource(ImageResizeRequest request) {
+		try {
+			
+			
+			if (request.getSourceImage() != null) {
+				return request.getSourceImage();
 			}
+			
+			if (request.getSourceFileStream() != null){
+				return ImageIO.read(request.getSourceFileStream());
+			}
+	
+			File sourceFile = null;
+			if (request.getSourceFile() != null
+					&& request.getSourceFile().canRead()) {
+				sourceFile = request.getSourceFile();
+			} else if (request.getSourceFilePath() != null) {
+				sourceFile = new File(request.getSourceFilePath());
+				if (!sourceFile.canRead()) {
+					throw new ImageResizeException(
+							"Cannot read source image file from provided path.");
+				}
+			}
+	
+			if (sourceFile == null) {
+				throw new ImageResizeException(
+						"Unable to get a source image file from any of the provided information.");
+			}
+	
+			return ImageIO.read(sourceFile);
+		} catch(IOException e){
+			throw new ImageResizeException(e.toString());
 		}
-
-		if (sourceFile == null) {
-			throw new Exception(
-					"Unable to get a source image file from any of the provided information.");
-		}
-
-		return ImageIO.read(sourceFile);
 	}
 
 	private GraphicsConfiguration getDefaultConfiguration() {
