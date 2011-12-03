@@ -204,8 +204,19 @@ public class ImageResizeService {
 		Graphics2D g2d = null;
 		try {
 			g2d = result.createGraphics();
+
 			g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
 					RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+
+			g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
+					RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+
+			g2d.setRenderingHint(RenderingHints.KEY_RENDERING,
+					RenderingHints.VALUE_RENDER_QUALITY);
+
+			g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
+					RenderingHints.VALUE_ANTIALIAS_ON);
+
 			g2d.scale(scaleX, scaleY);
 			g2d.drawImage(source, 0, 0, null);
 		} finally {
