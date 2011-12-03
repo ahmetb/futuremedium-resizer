@@ -19,7 +19,7 @@ end
 task :compile do
   puts 'Compiling...'  
   sh "mkdir -p build/"
-  sh "javac -d build -classpath #{java_files}"
+  sh "javac -d build -classpath . #{java_files}"
   puts 'Done.'
 end
 
