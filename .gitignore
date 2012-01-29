@@ -2,3 +2,5 @@ bin/**
 .settings/**
 *.jar
 src/MustiTester.java
+*.jpg
+*.jpeg
