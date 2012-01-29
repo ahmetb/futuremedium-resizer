@@ -198,9 +198,15 @@ public class ImageResizeService {
 	 */
 	private BufferedImage doResize(int newWidth, int newHeight, double scaleX,
 			double scaleY, BufferedImage source) {
-		GraphicsConfiguration gc = getDefaultConfiguration();
-		BufferedImage result = gc.createCompatibleImage(newWidth, newHeight,
-				source.getColorModel().getTransparency());
+		BufferedImage result;
+		try {
+			GraphicsConfiguration gc = getDefaultConfiguration();
+			result = gc.createCompatibleImage(newWidth, newHeight,
+					source.getColorModel().getTransparency());			
+		} catch ( java.awt.HeadlessException ex){
+			result = new BufferedImage(newWidth, newHeight, source.getType()); 
+			// Get type can be changed for some cases (if alpha layer is not needed etc)
+		}
 		Graphics2D g2d = null;
 		try {
 			g2d = result.createGraphics();
@@ -310,12 +316,12 @@ public class ImageResizeService {
 		}
 	}
 
-	private GraphicsConfiguration getDefaultConfiguration() {
+	private GraphicsConfiguration getDefaultConfiguration() throws java.awt.HeadlessException{
 		GraphicsEnvironment ge = GraphicsEnvironment
 				.getLocalGraphicsEnvironment();
 		// This is the problem, needs to handle headless.
 		GraphicsDevice gd = ge.getDefaultScreenDevice();
-
+		
 		return gd.getDefaultConfiguration();
 	}
 }
