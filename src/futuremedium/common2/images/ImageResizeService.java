@@ -313,6 +313,7 @@ public class ImageResizeService {
 	private GraphicsConfiguration getDefaultConfiguration() {
 		GraphicsEnvironment ge = GraphicsEnvironment
 				.getLocalGraphicsEnvironment();
+		// This is the problem, needs to handle headless.
 		GraphicsDevice gd = ge.getDefaultScreenDevice();
 
 		return gd.getDefaultConfiguration();
