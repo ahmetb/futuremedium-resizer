@@ -17,7 +17,8 @@ import javax.imageio.stream.MemoryCacheImageOutputStream;
 public class ImageResizeService {
 
 	/**
-	 * Resize a source image based on request parameters.
+	 * Resize a source image based on request parameters. May write results to
+	 * destionation buffers if said so.
 	 * 
 	 * @param request
 	 * @return Resulting image
@@ -119,7 +120,7 @@ public class ImageResizeService {
 						sourceHeight = (int) Math.rint(scaleY * sourceHeight);
 
 						result = this.doResize(sourceWidth, sourceHeight,
-								scaleX, scaleY, source);
+								source);
 					}
 
 					// We know our new image matches one target dimension so
@@ -146,8 +147,7 @@ public class ImageResizeService {
 					sourceWidth = (int) Math.rint(scaleX * sourceWidth);
 					sourceHeight = (int) Math.rint(scaleY * sourceHeight);
 
-					result = this.doResize(sourceWidth, sourceHeight, scaleX,
-							scaleY, source);
+					result = this.doResize(sourceWidth, sourceHeight, source);
 				}
 			} else {
 				// Scale both axes to fit entire image and ignore maintaining
@@ -155,8 +155,7 @@ public class ImageResizeService {
 				scaleX = (double) targetWidth / sourceWidth;
 				scaleY = (double) targetHeight / sourceHeight;
 
-				result = this.doResize(targetWidth, targetHeight, scaleX,
-						scaleY, source);
+				result = this.doResize(targetWidth, targetHeight, source);
 			}
 		} else {
 			// No resize necessary so skip that step and just return existing
@@ -188,6 +187,37 @@ public class ImageResizeService {
 	 *            The width of the new image
 	 * @param newHeight
 	 *            The height of the new image
+	 * @param source
+	 *            The source image to resize
+	 * @return New BufferedImage being a scaled version of source
+	 */
+	private BufferedImage doResize(int newWidth, int newHeight,
+			BufferedImage source) {
+		BufferedImage result;
+		Graphics2D g2d = null;
+		try {
+			Image scaled = source.getScaledInstance(newWidth, newHeight,
+					Image.SCALE_SMOOTH | Image.SCALE_FAST);
+			result = new BufferedImage(scaled.getWidth(null),
+					scaled.getHeight(null), BufferedImage.TYPE_INT_RGB);
+
+			g2d = result.createGraphics();
+			g2d.drawImage(scaled, null, null);
+		} finally {
+			if (g2d != null) {
+				g2d.dispose();
+			}
+		}
+		return result;
+	}
+
+	/**
+	 * Perform actual resize based on provided parameters.
+	 * 
+	 * @param newWidth
+	 *            The width of the new image
+	 * @param newHeight
+	 *            The height of the new image
 	 * @param scaleX
 	 *            The amount to scale source image by in the X axis
 	 * @param scaleY
@@ -195,18 +225,21 @@ public class ImageResizeService {
 	 * @param source
 	 *            The source image to resize
 	 * @return New BufferedImage being a scaled version of source
+	 * @deprecated
 	 */
+	@SuppressWarnings("unused")
 	private BufferedImage doResize(int newWidth, int newHeight, double scaleX,
 			double scaleY, BufferedImage source) {
 		BufferedImage result;
 		GraphicsConfiguration gc = getDefaultConfiguration();
-		if ( gc != null){
-			result = gc.createCompatibleImage(newWidth, newHeight,
-					source.getColorModel().getTransparency());						
+
+		if (gc != null) {
+			result = gc.createCompatibleImage(newWidth, newHeight, source
+					.getColorModel().getTransparency());
 		} else {
-			result = new BufferedImage(newWidth, newHeight, source.getType()); 
+			result = new BufferedImage(newWidth, newHeight, source.getType());
 		}
-		
+
 		Graphics2D g2d = null;
 		try {
 			g2d = result.createGraphics();
@@ -316,13 +349,14 @@ public class ImageResizeService {
 		}
 	}
 
-	private GraphicsConfiguration getDefaultConfiguration() throws java.awt.HeadlessException{
+	private GraphicsConfiguration getDefaultConfiguration()
+			throws java.awt.HeadlessException {
 		GraphicsEnvironment ge = GraphicsEnvironment
 				.getLocalGraphicsEnvironment();
-		if ( ge.isHeadlessInstance()){
+		if (ge.isHeadlessInstance()) {
 			return null;
-		} 
-		GraphicsDevice gd = ge.getDefaultScreenDevice();		
+		}
+		GraphicsDevice gd = ge.getDefaultScreenDevice();
 		return gd.getDefaultConfiguration();
 	}
 }
